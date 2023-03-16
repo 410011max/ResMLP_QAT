@@ -36,11 +36,16 @@ class Q_Mlp(nn.Module):
         self.set_param(mlp)
 
     def set_param(self, mlp):
-        self.fc1 = QLinear(mlp.fc1)
-        self.act1 = QAct(return_fp=True)
+        self.fc1_VT = QLinear(mlp.fc1.VT)
+        self.act1 = QAct()
+        self.fc1_U = QLinear(mlp.fc1.U)
+        self.act2 = QAct(return_fp=True) ## !!!!!! back to FP32
         self.GELU = torch.nn.GELU()
-        self.act2 = QAct()
-        self.fc2 = QLinear(mlp.fc2)
+        self.act3 = QAct()
+        self.fc2_VT = QLinear(mlp.fc2.VT)
+        self.act4 = QAct()
+        self.fc2_U = QLinear(mlp.fc2.U)
+        # self.drop = mlp.drop
 
     def get_scales(self):
         scales = []
@@ -52,12 +57,18 @@ class Q_Mlp(nn.Module):
 
     def forward(self, x, a_s=None):
         # forward using the quantized modules
-        x, a_s = self.fc1(x, a_s)
+        x, a_s = self.fc1_VT(x, a_s)
         x, a_s = self.act1(x, a_s)
+        x, a_s = self.fc1_U(x, a_s)
+        x, a_s = self.act2(x, a_s)
         # row back to FP32
         x = self.GELU(x)
-        x, a_s = self.act2(x)
-        x, a_s = self.fc2(x, a_s)
+        x, a_s = self.act3(x)
+        # x = self.drop(x)
+        x, a_s = self.fc2_VT(x, a_s)
+        x, a_s = self.act4(x, a_s)
+        x, a_s = self.fc2_U(x, a_s)
+        # x = self.drop(x)
         return x, a_s
 
 
@@ -141,9 +152,9 @@ class QLayer_Block(nn.Module):
 
 RES_RESCALE_BIT = 8
 
-class Q_ResMLP24(nn.Module):
+class Q_TrimMLP12(nn.Module):
     """
-        Quantized ResMLP24 model.
+        Quantized TrimMLP-S12 model.
     """
     def __init__(self, model):
         super().__init__()
@@ -184,6 +195,6 @@ class Q_ResMLP24(nn.Module):
         return x
 
 
-def q_resmlp(model):
-    net = Q_ResMLP24(model)
+def q_trimmlp_12(model):
+    net = Q_TrimMLP12(model)
     return net

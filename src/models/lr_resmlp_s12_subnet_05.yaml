@@ -1,0 +1,9 @@
+MODEL:
+  TYPE: lr_resmlp_subnet
+  NAME: lr_resmlp_s12_subnet_05
+  DROP_PATH_RATE: 0.0
+  DROP_RATE: 0.0
+  RESMLP:
+    EMBED_DIM: 384
+    DEPTH: 12
+    SVD_CONFIG: [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]

@@ -4,6 +4,8 @@ from timm.models.vision_transformer import Mlp, PatchEmbed , _cfg
 from timm.models.registry import register_model
 from timm.models.layers import trunc_normal_,  DropPath
 
+from utils import load_pretrained
+
 __all__ = [
     'resmlp_24'
 ]
@@ -109,15 +111,18 @@ class resmlp_models(nn.Module):
         x  = self.forward_features(x)
         x = self.head(x)
         return x 
-  
+
 @register_model
 def resmlp_24(pretrained=False, **kwargs):
     model = resmlp_models(
-        patch_size=16, embed_dim=384, depth=24,
+        patch_size=16, embed_dim=384, depth=12,
         Patch_layer=PatchEmbed,
         init_scale=1e-5,**kwargs)
     model.default_cfg = _cfg()
 
     if pretrained:
-        model.load_state_dict(torch.load("ResMLP_S24_ReLU_fp32_80.602.pth"))
+        # model.load_state_dict(torch.load("ResMLP_S24_ReLU_fp32_80.602.pth"))
+        # model.load_state_dict(torch.load("resmlp_24_dist.pth"))
+        load_pretrained(model, model_path = 'resmlp_12_dist.pth')
+
     return model

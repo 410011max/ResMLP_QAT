@@ -13,3 +13,6 @@ from .q_resmlp_v2_5 import *
 
 from .resmlp_model_v4 import *
 from .q_resmlp_v4 import *
+
+from .trimmlp import *
+from .q_trimmlp import *

@@ -149,6 +149,7 @@ class QLinear(_QBase):
             return self.inference(x_q) * b_s, b_s
             # return self.light_quant(x_q, b_s)
         else:
+            # print('inference1')
             return self.inference(x), None
         
     # def forward(self, x, a_s):
@@ -245,6 +246,7 @@ class QAct(_QBase):
             return x_round * scale, scale
 
         else: # on inference
+            # print('inference2')
             x_round = torch.floor((x * self.mult / 2**self.shift)+0.5).clamp(self.Qn, self.Qp)
             if self.return_fp: # last layer, return output as fp32 
                 scale = self.observer.get_scale()
@@ -313,6 +315,7 @@ class QResAct(_QBase):
             return mix_x_round * scale, scale
 
         else:
+            # print('inference3')
             # align residual input
             res_x_align = (res_x * self.align_int).clamp(self.rQn, self.rQp)
 
@@ -346,6 +349,13 @@ def init_scale_counter(model):
             cnt += 1
             m.init_scale_counter()
     print(f"Reset {cnt} counters.")
+
+
+
+
+
+
+
 
 #! Experimental, used for Hardware-Aware ResMLP
 class QInner(QLinear):
