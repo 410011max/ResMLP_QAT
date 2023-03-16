@@ -55,8 +55,8 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
 parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)',
                     dest='weight_decay')
-parser.add_argument('-p', '--print-freq', default=10, type=int,
-                    metavar='N', help='print frequency (default: 10)')
+parser.add_argument('-p', '--print-freq', default=100, type=int,
+                    metavar='N', help='print frequency (default: 100)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
@@ -174,8 +174,8 @@ parser.add_argument('--load_pretrain', default='', type=str, metavar='PATH',
                     help='path to latest fp32 checkpoint (default: none)')
 best_acc1 = 0
 
-arch_dict = {'q_resmlp': resmlp_24, 'q_resmlp_norm': resmlp_24_norm, 'q_resmlp_v2': resmlp_24, 'q_resmlp_v3': resmlp_24, 'q_resmlp_v4': resmlp_24_v4}
-quantize_arch_dict = {'q_resmlp': q_resmlp, 'q_resmlp_norm': q_resmlp_norm, 'q_resmlp_v2': q_resmlp_v2, 'q_resmlp_v3': q_resmlp_v3, 'q_resmlp_v4': q_resmlp_v4}
+arch_dict = {'q_trimmlp_12': trimmlp_12, 'q_resmlp': resmlp_24, 'q_resmlp_norm': resmlp_24_norm, 'q_resmlp_v2': resmlp_24, 'q_resmlp_v3': resmlp_24, 'q_resmlp_v4': resmlp_24_v4}
+quantize_arch_dict = {'q_trimmlp_12': q_trimmlp_12, 'q_resmlp': q_resmlp, 'q_resmlp_norm': q_resmlp_norm, 'q_resmlp_v2': q_resmlp_v2, 'q_resmlp_v3': q_resmlp_v3, 'q_resmlp_v4': q_resmlp_v4}
 
 args = parser.parse_args()
 if not os.path.exists(args.save_path):
@@ -280,9 +280,12 @@ def main_worker(gpu, ngpus_per_node, args):
     #     else:
     #         logging.info("=> no checkpoint found at '{}'".format(args.resume))
 
+    # print(model)
+    
     if args.regular != True:
         quantize_arch = quantize_arch_dict[args.arch]
         model = quantize_arch(model)
+
 
     # if args.arch == "q_resmlp_v4":
     #     for i in range(0, 24):
@@ -338,7 +341,7 @@ def main_worker(gpu, ngpus_per_node, args):
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-    
+
     
     # enlarge weight decay for inner linear's bias
     if args.arch == "q_resmlp_v4":
@@ -516,6 +519,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         batch_time.update(time.time() - end)
         end = time.time()
 
+
         if i % args.print_freq == 0:
             progress.display(i)
             if args.wandb:
@@ -676,6 +680,7 @@ def validate(val_loader, model, criterion, args):
                 progress.display(i)
 
         logging.info(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
+
 
     if args.wandb:
         to_log = {
